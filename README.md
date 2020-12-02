@@ -4,3 +4,4 @@ Repositorio para el Proyecto I de la asignatura de Sistemas Operativos en la que
 Integrantes:
 - Lucas García Alonso (lgalonso)
 - Oscar Baltasar Jimenez Casas (oscarbaltasar)
+- Agustin Levon Ghio Kissoyan (Ghiojo)
