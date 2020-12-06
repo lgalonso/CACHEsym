@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define N 1024
 
@@ -50,12 +51,13 @@ int LeerLinea(char LineaLeida[5], int linea){
 
 // Recibe una direccion de acceso y la guarda en bloque, linea, ETQ y palabra que se pasan por referencia
 // Sabemos que los 3 ultimos bits son para la palabra, 2 para la linea y 5 para la ETQ
-void traduccionAcceso(char* acceso, int* palabra, int* linea, int* etq, int* bloque){
+void traduccionAcceso(char* acceso, int* palabra, int* linea, int* etq, int* bloque, int* acceso_hex){
    printf("Traduciendo: %s...\n", acceso);
 
    // Funcion que convierte la parte inicial de un string en un long int segun la base indicada
    int num = (int)strtol(acceso, NULL, 16);
 
+   *acceso_hex = num;
    *palabra = num & 0x0007;
    // Dividimos por un numero en base 2 para quedarnos con los bits que nos interesan
    *linea = (num & 0x0018)/pow(2,3);
@@ -64,38 +66,63 @@ void traduccionAcceso(char* acceso, int* palabra, int* linea, int* etq, int* blo
    
 }
 
-void printfail(int tiempo, int palabra, int linea, int etiqueta, int bloque, int acceso, int fallos){
-    printf("T:%d, Fallo de CACHE %d, ADDR %04X ETQ %X linea %02X palabra %02X bloque %02X", tiempo, fallos, acceso, etiqueta, linea, palabra, bloque);
+void printfail(int tiempo, int palabra, int linea, int etiqueta, int bloque, int acceso_hex, int fallos){
+    printf("T:%d, Fallo de CACHE %d, ADDR %04X ETQ %X linea %02X palabra %02X bloque %02X\n", tiempo, fallos, acceso_hex, etiqueta, linea, palabra, bloque);
 }
 
-void printsuccess(int tiempo, int palabra, int linea, int etiqueta, int acceso, int dato){
-    printf("T:%d, Acierto de CACHE, ADDR %04X ETQ %X linea %02X palabra %02X DATO %02X", tiempo, acceso, etiqueta, linea, palabra, dato);
+void printsuccess(int tiempo, int palabra, int linea, int etiqueta, int acceso_hex, int dato){
+    printf("T:%d, Acierto de CACHE, ADDR %04X ETQ %X linea %02X palabra %02X DATO %02X\n", tiempo, acceso_hex, etiqueta, linea, palabra, dato);
 }
 
 //Busca la linea de la cache y compara las etiquetas, si la etiqueta está bién, devuelve
-int busqueda(T_LINEA_CACHE *cache, int palabra, int linea, int etiqueta, int *tiempo, int *fallos, int acceso, int bloque){
+int busqueda(T_LINEA_CACHE *cache, int palabra, int linea, int etiqueta, int *tiempo, int *fallos, int acceso_hex, int bloque){
 
     if(cache[linea].ETQ == etiqueta){
         //Recoge el dato
-        dato = cache[linea].Datos[palabra];
+        int dato = cache[linea].Datos[palabra];
         //Llama a Imprimir Acierto
-        printsuccess(*tiempo, palabra, linea, etiqueta, acceso, dato);
+        printsuccess(*tiempo, palabra, linea, etiqueta, acceso_hex, dato);
         return 1;
         //Modificar Tiempo
     }
-    else
+    else{
+    *(fallos) = *(fallos) + 1;
     //Llama a Imprimir Fallo
-    printfail(*tiempo, palabra, linea, etiqueta, bloque, acceso, *fallos);
+    printfail(*tiempo, palabra, linea, etiqueta, bloque, acceso_hex, *fallos);
     //Llama a Cargar de la Ram a la Caché
     //Modificar Tiempo
     return 0;
+    }
+
 }
 
+//Funcion sleep
+
 void main(){
+ int tiempoglobal = 0;
+ int numfallos = 0;
  unsigned char RAM[N];
- char Linea[5];
- T_LINEA_CACHE Cache[4];
- inicio(RAM, Cache);
- LeerLinea(Linea,3);
- printf("\n%s\n",RAM);
+ char acceso[5];
+ T_LINEA_CACHE Cache[5];
+ if (inicio(RAM, Cache) == -1){
+  exit(-1);
+ }
+ if (LeerLinea(acceso,1) == -1){
+  exit(-1);
+ }
+
+ int etiqueta = -1;
+ int linea = -1;
+ int palabra = -1;
+ int bloque = -1;
+ int acceso_hex = -1;
+
+
+ //Bucle de lineas
+ traduccionAcceso(acceso, &palabra, &linea, &etiqueta, &bloque, &acceso_hex);
+
+ busqueda(Cache, palabra, linea, etiqueta, &tiempoglobal, &numfallos, acceso_hex, bloque);
+
+
+ //printf("\n%s\n",RAM);
 }
