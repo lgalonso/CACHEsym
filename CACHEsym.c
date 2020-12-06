@@ -44,13 +44,13 @@ int LeerLinea(char LineaLeida[5], int linea){
  int i;
  for(i=0; i<linea; i++){
   fgets(LineaLeida, 5, Linea);
-  if(feof(Linea)){
-   return 0;
-  } else {
-   fgetc(Linea);
-  }
+  fgetc(Linea);
   //printf("%s", LineaLeida);
  }
+ fgetc(Linea);
+  if(feof(Linea)){
+   return 0;
+  }
  fclose(Linea);
  return 1;
 }
@@ -69,7 +69,6 @@ void traduccionAcceso(char* acceso, int* palabra, int* linea, int* etq, int* blo
    *linea = (num & 0x0018)/pow(2,3);
    *etq = (num & 0x03E0)/pow(2,5);
    *bloque = (num & 0x03F8)/pow(2,3);
-   
 }
 
 void printfail(int tiempo, int palabra, int linea, int etiqueta, int bloque, int acceso_hex, int fallos){
@@ -135,23 +134,35 @@ void main(){
  int palabra = -1;
  int bloque = -1;
  int acceso_hex = -1;
- int i,j,o=0;
+ int i,j,o=1,m;
 
  //Bucle de lineas
+
  traduccionAcceso(acceso, &palabra, &linea, &etiqueta, &bloque, &acceso_hex);
 
+ for(;m!=0;o++){
  //busqueda(Cache, palabra, linea, etiqueta, &tiempoglobal, &numfallos, acceso_hex, bloque);
- if(busqueda(Cache, palabra, linea, etiqueta, &tiempoglobal, &numfallos, acceso_hex, bloque) == 0){
+  if(o!=1){
+   m=LeerLinea(acceso,o);
+   traduccionAcceso(acceso, &palabra, &linea, &etiqueta, &bloque, &acceso_hex);
+  }
+  if(busqueda(Cache, palabra, linea, etiqueta, &tiempoglobal, &numfallos, acceso_hex, bloque) == 0){
     loadram(RAM, bloque, &(Cache[linea]), linea, etiqueta);
     printsuccess(tiempoglobal, palabra, linea, etiqueta, acceso_hex, Cache[linea].Datos[palabra]);
- }
- for(i=0;i<4;i++){
-  printf("ETQ:%02X\tDatos ", Cache[i].ETQ);
-  for(j=7;j>=0;j--){
-   printf("%02X ",Cache[i].Datos[j]);
   }
-  printf("\n");
+  for(i=0;i<4;i++){
+   printf("ETQ:%02X\tDatos ", Cache[i].ETQ);
+   for(j=7;j>=0;j--){
+    printf("%02X ",Cache[i].Datos[j]);
+   }
+   printf("\n");
+  }
+  //sleep(2);
+  tiempoglobal+=2;
  }
-
+ float ofloat = (float)o-1;
+ float fallosfloat = (float)numfallos;
+ float tiempomedio = 2*(1-(fallosfloat/(ofloat)))+10*(fallosfloat/(ofloat));
+ printf("Acesos totales: %d\nFallos totales: %d\nTiempo medio de acceso: %.2f\n",o-1,numfallos, tiempomedio);
  //printf("\n%s\n",RAM);
 }
