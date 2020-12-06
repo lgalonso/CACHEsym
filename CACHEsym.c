@@ -95,6 +95,7 @@ int busqueda(T_LINEA_CACHE *cache, int palabra, int linea, int etiqueta, int *ti
     *(fallos) = *(fallos) + 1;
     //Llama a Imprimir Fallo
     printfail(*tiempo, palabra, linea, etiqueta, bloque, acceso_hex, *fallos);
+    *(tiempo) = *(tiempo) + 10;
     //Modificar Tiempo
     return 0;
     }
@@ -105,11 +106,12 @@ int loadram(unsigned char *RAM, int bloque, T_LINEA_CACHE *cache, int linea, int
     if(bloque > 127){
         return 0;
     }
-    printf("Cargando el bloque %02X en la linea %02X", bloque, linea);
+    int x;
+    printf("Cargando el bloque %02X en la linea %02X\n", bloque, linea);
     for(x = 0; x < 8; x++){
-        cache.Datos[x] = RAM[(bloque*8) + x];
+        cache->Datos[x] = RAM[(bloque*8) + x];
     }
-    cache.ETQ = etiqueta;
+    cache->ETQ = etiqueta;
     return 1;
 }
 
@@ -133,15 +135,23 @@ void main(){
  int palabra = -1;
  int bloque = -1;
  int acceso_hex = -1;
-
+ int i,j,o=0;
 
  //Bucle de lineas
  traduccionAcceso(acceso, &palabra, &linea, &etiqueta, &bloque, &acceso_hex);
 
- busqueda(Cache, palabra, linea, etiqueta, &tiempoglobal, &numfallos, acceso_hex, bloque);
-if(busqueda(Cache, palabra, linea, etiqueta, &tiempoglobal, &numfallos, acceso_hex, bloque) == 0){
-    loadram(RAM, )
-} 
+ //busqueda(Cache, palabra, linea, etiqueta, &tiempoglobal, &numfallos, acceso_hex, bloque);
+ if(busqueda(Cache, palabra, linea, etiqueta, &tiempoglobal, &numfallos, acceso_hex, bloque) == 0){
+    loadram(RAM, bloque, &(Cache[linea]), linea, etiqueta);
+    printsuccess(tiempoglobal, palabra, linea, etiqueta, acceso_hex, Cache[linea].Datos[palabra]);
+ }
+ for(i=0;i<4;i++){
+  printf("ETQ:%02X\tDatos ", Cache[i].ETQ);
+  for(j=7;j>=0;j--){
+   printf("%02X ",Cache[i].Datos[j]);
+  }
+  printf("\n");
+ }
 
  //printf("\n%s\n",RAM);
 }
