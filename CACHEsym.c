@@ -157,7 +157,7 @@ void main(){
    }
    printf("\n");
   }
-  //sleep(2);
+  sleep(2);
   tiempoglobal+=2;
  }
  float ofloat = (float)o-1;
