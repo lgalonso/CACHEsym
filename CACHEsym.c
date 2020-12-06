@@ -9,9 +9,12 @@ typedef struct {
 } T_LINEA_CACHE;
 
 
-void inicio(unsigned char RAM[N], T_LINEA_CACHE Cache[4]){
+int inicio(unsigned char RAM[N], T_LINEA_CACHE Cache[4]){
  FILE *LeerRAM;
  LeerRAM = fopen("RAM.bin","r");
+ if(LeerRAM == NULL){
+ return -1;
+ }
  fread(RAM, 1, N, LeerRAM);
  int i,j;
  for(i=0; i<4; i++){
@@ -22,11 +25,15 @@ void inicio(unsigned char RAM[N], T_LINEA_CACHE Cache[4]){
   }
  }
  fclose(LeerRAM);
+ return 1;
 }
 
 int LeerLinea(char LineaLeida[5], int linea){
  FILE *Linea;
  Linea = fopen("accesos_memoria.txt", "r");
+ if(Linea == NULL){
+ return -1;
+ }
  int i;
  for(i=0; i<linea; i++){
   fgets(LineaLeida, 5, Linea);
@@ -46,6 +53,6 @@ void main(){
  char Linea[5];
  T_LINEA_CACHE Cache[4];
  inicio(RAM, Cache);
- //printf("\n%s\n",RAM);
  LeerLinea(Linea,3);
+ printf("\n%s\n",RAM);
 }
