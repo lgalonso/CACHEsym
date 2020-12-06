@@ -134,14 +134,14 @@ void main(){
  int palabra = -1;
  int bloque = -1;
  int acceso_hex = -1;
- int i,j,o=1,m;
+ int i,j,o=1,m=1;
+ char textototal[100];
 
  //Bucle de lineas
 
  traduccionAcceso(acceso, &palabra, &linea, &etiqueta, &bloque, &acceso_hex);
 
  for(;m!=0;o++){
- //busqueda(Cache, palabra, linea, etiqueta, &tiempoglobal, &numfallos, acceso_hex, bloque);
   if(o!=1){
    m=LeerLinea(acceso,o);
    traduccionAcceso(acceso, &palabra, &linea, &etiqueta, &bloque, &acceso_hex);
@@ -150,6 +150,7 @@ void main(){
     loadram(RAM, bloque, &(Cache[linea]), linea, etiqueta);
     printsuccess(tiempoglobal, palabra, linea, etiqueta, acceso_hex, Cache[linea].Datos[palabra]);
   }
+  textototal[o-1]=Cache[linea].Datos[palabra];
   for(i=0;i<4;i++){
    printf("ETQ:%02X\tDatos ", Cache[i].ETQ);
    for(j=7;j>=0;j--){
@@ -160,9 +161,11 @@ void main(){
   sleep(2);
   tiempoglobal+=2;
  }
+ textototal[o-1]='\0';
  float ofloat = (float)o-1;
  float fallosfloat = (float)numfallos;
  float tiempomedio = 2*(1-(fallosfloat/(ofloat)))+10*(fallosfloat/(ofloat));
  printf("Acesos totales: %d\nFallos totales: %d\nTiempo medio de acceso: %.2f\n",o-1,numfallos, tiempomedio);
- //printf("\n%s\n",RAM);
+ printf("El texto leido es: %s\n", textototal);
+//printf("\n%s\n",RAM);
 }
