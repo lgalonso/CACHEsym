@@ -2,6 +2,12 @@
 #include <stdlib.h>
 #include <math.h>
 
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
+
 #define N 1024
 
 typedef struct {
@@ -89,11 +95,22 @@ int busqueda(T_LINEA_CACHE *cache, int palabra, int linea, int etiqueta, int *ti
     *(fallos) = *(fallos) + 1;
     //Llama a Imprimir Fallo
     printfail(*tiempo, palabra, linea, etiqueta, bloque, acceso_hex, *fallos);
-    //Llama a Cargar de la Ram a la Caché
     //Modificar Tiempo
     return 0;
     }
 
+}
+
+int loadram(unsigned char *RAM, int bloque, T_LINEA_CACHE *cache, int linea, int etiqueta){
+    if(bloque > 127){
+        return 0;
+    }
+    printf("Cargando el bloque %02X en la linea %02X", bloque, linea);
+    for(x = 0; x < 8; x++){
+        cache.Datos[x] = RAM[(bloque*8) + x];
+    }
+    cache.ETQ = etiqueta;
+    return 1;
 }
 
 //Funcion sleep
@@ -103,7 +120,7 @@ void main(){
  int numfallos = 0;
  unsigned char RAM[N];
  char acceso[5];
- T_LINEA_CACHE Cache[5];
+ T_LINEA_CACHE Cache[4];
  if (inicio(RAM, Cache) == -1){
   exit(-1);
  }
@@ -122,7 +139,9 @@ void main(){
  traduccionAcceso(acceso, &palabra, &linea, &etiqueta, &bloque, &acceso_hex);
 
  busqueda(Cache, palabra, linea, etiqueta, &tiempoglobal, &numfallos, acceso_hex, bloque);
-
+if(busqueda(Cache, palabra, linea, etiqueta, &tiempoglobal, &numfallos, acceso_hex, bloque) == 0){
+    loadram(RAM, )
+} 
 
  //printf("\n%s\n",RAM);
 }
