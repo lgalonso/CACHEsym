@@ -122,8 +122,6 @@ int loadram(unsigned char *RAM, int bloque, T_LINEA_CACHE *cache, int linea, int
     return 1;
 }
 
-//Funcion sleep
-
 void main(){
     int tiempoglobal = 0;
     int numfallos = 0;
