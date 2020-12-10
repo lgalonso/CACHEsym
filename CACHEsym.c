@@ -8,7 +8,9 @@
 #include <unistd.h>
 #endif
 
-#define N 1024
+#define RAM_SIZE 1024
+#define T_FALLO 10
+#define T_ACIERTO 1
 
 typedef struct {
     short int ETQ;
@@ -16,13 +18,13 @@ typedef struct {
 } T_LINEA_CACHE;
 
 
-int inicio(unsigned char RAM[N], T_LINEA_CACHE Cache[4]){
+int inicio(unsigned char RAM[RAM_SIZE], T_LINEA_CACHE Cache[4]){
     FILE *LeerRAM;
     LeerRAM = fopen("RAM.bin","r");
     if(LeerRAM == NULL){
         return -1;
     }
-    fread(RAM, 1, N, LeerRAM);
+    fread(RAM, 1, RAM_SIZE, LeerRAM);
     int i,j;
     for(i=0; i<4; i++){
         Cache[i].ETQ=255;
@@ -61,14 +63,14 @@ void traduccionAcceso(char* acceso, int* palabra, int* linea, int* etq, int* blo
     printf("Traduciendo: %s...\n", acceso);
 
     // Funcion que convierte la parte inicial de un string en un long int segun la base indicada
-    int num = (int)strtol(acceso, NULL, 16);
+    int acc_num = (int)strtol(acceso, NULL, 16);
 
-    *acceso_hex = num;
-    *palabra = num & 0x0007;
+    *acceso_hex = acc_num;
+    *palabra = acc_num & 0x0007;
     // Dividimos por un numero en base 2 para quedarnos con los bits que nos interesan
-    *linea = (num & 0x0018)/pow(2,3);
-    *etq = (num & 0x03E0)/pow(2,5);
-    *bloque = (num & 0x03F8)/pow(2,3);
+    *linea = (acc_num & 0x0018)/pow(2,3);
+    *etq = (acc_num & 0x03E0)/pow(2,5);
+    *bloque = (acc_num & 0x03F8)/pow(2,3);
 }
 
 //función que imprime el mensaje en caso de que halla un fallo de caché
@@ -89,17 +91,19 @@ int busqueda(T_LINEA_CACHE *cache, int palabra, int linea, int etiqueta, int *ti
     if(cache[linea].ETQ == etiqueta){
         //Recoge el dato
         int dato = cache[linea].Datos[palabra];
+        //Modificar Tiempo
+        *(tiempo) = *(tiempo) + T_ACIERTO;
         //Llama a Imprimir Acierto
         printsuccess(*tiempo, palabra, linea, etiqueta, acceso_hex, dato);
+        
         return 1;
-        //Modificar Tiempo
     }
     else{
     *(fallos) = *(fallos) + 1;
     //Llama a Imprimir Fallo
     printfail(*tiempo, palabra, linea, etiqueta, bloque, acceso_hex, *fallos);
-    *(tiempo) = *(tiempo) + 10;
     //Modificar Tiempo
+    *(tiempo) = *(tiempo) + T_FALLO;
     return 0;
     }
 
@@ -125,7 +129,7 @@ int loadram(unsigned char *RAM, int bloque, T_LINEA_CACHE *cache, int linea, int
 void main(){
     int tiempoglobal = 0;
     int numfallos = 0;
-    unsigned char RAM[N];
+    unsigned char RAM[RAM_SIZE];
     char acceso[5];
     T_LINEA_CACHE Cache[4];
     if (inicio(RAM, Cache) == -1){
@@ -158,6 +162,7 @@ void main(){
         }
         if(busqueda(Cache, palabra, linea, etiqueta, &tiempoglobal, &numfallos, acceso_hex, bloque) == 0){
             if(loadram(RAM, bloque, &(Cache[linea]), linea, etiqueta) == 1){
+                tiempoglobal+=T_ACIERTO;
                 printsuccess(tiempoglobal, palabra, linea, etiqueta, acceso_hex, Cache[linea].Datos[palabra]);
             }
             else {
@@ -175,10 +180,9 @@ void main(){
             }
             printf("\n");
         }
-
         //El único e indispensable sleep de 2 segundos
         sleep(2);
-        tiempoglobal+=1;
+        
     }
 
     //Se agrega un \0 al final del string de texto total para evitar errores
