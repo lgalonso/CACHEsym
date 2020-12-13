@@ -193,7 +193,7 @@ void main(){
     //a float ya que no se pueden dividir con ints
     float ofloat = (float)o-1;
     float fallosfloat = (float)numfallos;
-    float tiempomedio = 2 * (1 - (fallosfloat / (ofloat))) + 10 * (fallosfloat / (ofloat));
+    float tiempomedio = T_ACIERTO * (1 - (fallosfloat / (ofloat))) + T_FALLO * (fallosfloat / (ofloat));
 
     printf("Acesos totales: %d\nFallos totales: %d\nTiempo medio de acceso: %.2f\n", o-1, numfallos, tiempomedio);
     printf("El texto leido es: %s\n", textototal);
